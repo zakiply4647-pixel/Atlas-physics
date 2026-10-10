@@ -1,524 +1,667 @@
-
-/* ============================================
-   ATLAS PHYSICS
-   Interactive Learning Platform
-   JavaScript Application
-============================================ */
+/* =====================================================
+   ATLAS PHYSICS PRO MAX
+   Interactive learning platform — 4AM Algeria
+   ===================================================== */
 
 "use strict";
 
-/* ---------- 1. Application State ---------- */
+/* ---------- Helpers and saved state ---------- */
 
-const STORAGE_KEY = "atlasPhysicsData";
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-const defaultState = {
-  xp: 0,
-  completedLessons: [],
-  answeredQuestions: [],
-  theme: "dark"
+const STORAGE = {
+  theme: "atlas_theme_v1",
+  progress: "atlas_progress_v1",
+  notes: "atlas_notes_v1",
+  settings: "atlas_lab_settings_v1",
+  measurements: "atlas_ohm_measurements_v1"
 };
 
-let state = loadState();
-
-function loadState() {
+function loadJSON(key, fallback) {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (!saved) {
-      return { ...defaultState };
-    }
-
-    const parsed = JSON.parse(saved);
-
-    return {
-      ...defaultState,
-      ...parsed,
-      completedLessons: Array.isArray(parsed.completedLessons)
-        ? parsed.completedLessons
-        : [],
-      answeredQuestions: Array.isArray(parsed.answeredQuestions)
-        ? parsed.answeredQuestions
-        : []
-    };
-  } catch (error) {
-    console.warn("تعذر تحميل التقدم المحفوظ:", error);
-    return { ...defaultState };
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : JSON.parse(value);
+  } catch {
+    return fallback;
   }
 }
 
-function saveState() {
+function saveJSON(key, value) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (error) {
-    console.warn("تعذر حفظ التقدم:", error);
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch {
+    toast("تعذر الحفظ على هذا الجهاز.");
+    return false;
   }
 }
 
-/* ---------- 2. Lessons Database ---------- */
+function numberValue(id, fallback = 0) {
+  const element = document.getElementById(id);
+  if (!element) return fallback;
+  const value = Number(element.value);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = String(value);
+}
+
+function formatNumber(value, decimals = 2) {
+  if (!Number.isFinite(value)) return "—";
+  return Number(value.toFixed(decimals)).toLocaleString("en-US", {
+    maximumFractionDigits: decimals
+  });
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
+function toast(message) {
+  const region = $("#toastRegion");
+  if (!region) return;
+
+  const item = document.createElement("div");
+  item.className = "toast-message";
+  item.textContent = message;
+  region.appendChild(item);
+
+  while (region.children.length > 4) {
+    region.firstElementChild.remove();
+  }
+
+  window.setTimeout(() => item.remove(), 3200);
+}
+
+/* ---------- Lesson library ---------- */
+
+/*
+  These are the initial lesson cards.
+  The content is educational material, not a replacement
+  for checking the current official Algerian curriculum.
+*/
 
 const lessons = [
   {
-    id: "electric-current",
-    title: "شدة التيار الكهربائي",
+    id: "electric-charge",
+    title: "التكهرب وطرق التكهرب",
     category: "electricity",
     icon: "⚡",
     duration: "15 دقيقة",
-    difficulty: "سهل",
-    description: "تعرّف على شدة التيار الكهربائي ووحدتها وأداة قياسها.",
-    introduction:
-      "التيار الكهربائي هو حركة الشحنات الكهربائية في دارة كهربائية مغلقة. في الدروس المدرسية نستعمل شدة التيار لوصف مقدار الشحنة التي تعبر مقطعًا من الناقل خلال الزمن.",
+    level: "أساسي",
+    description: "تعرف على الشحنات الكهربائية والتكهرب بالدلك واللمس والتأثير.",
+    objectives: [
+      "التعرف على الجسم المتكهرب والجسم المتعادل.",
+      "التمييز بين الشحنة الموجبة والسالبة.",
+      "شرح انتقال الإلكترونات في التكهرب."
+    ],
     sections: [
       {
-        title: "ما هي شدة التيار؟",
-        text: "شدة التيار الكهربائي كمية فيزيائية نرمز لها بالحرف I، ووحدتها الأمبير A. نقيسها باستعمال الأمبيرمتر الذي يركب على التسلسل في الدارة."
+        title: "مفهوم التكهرب",
+        body: "يصبح الجسم متكهربًا عندما يكتسب فائضًا من الشحنات الكهربائية أو يفقد بعض الإلكترونات. في الأجسام الصلبة، انتقال الإلكترونات هو الذي يفسر كثيرًا من ظواهر التكهرب."
       },
       {
-        title: "كيف نقيسها؟",
-        text: "نختار مجال قياس مناسبًا، ثم نركب الأمبيرمتر على التسلسل مع العنصر المراد قياس التيار المار فيه. يجب احترام قطبي الجهاز."
+        title: "طرق التكهرب",
+        body: "يمكن أن يحدث التكهرب بالدلك أو باللمس أو بالتأثير. في الدلك تنتقل إلكترونات بين مادتين، وفي اللمس يحدث انتقال للشحنات بالتلامس، أما التأثير فيحدث فيه إعادة توزيع للشحنات بسبب جسم مشحون قريب."
       },
       {
-        title: "معلومة مهمة",
-        text: "في دارة بسيطة موصولة على التسلسل، تكون شدة التيار نفسها في مختلف نقاط الدارة المثالية."
+        title: "الشحنات الكهربائية",
+        body: "الشحنات المتشابهة تتنافر، والشحنات المختلفة تتجاذب. الجسم المتعادل يحتوي على مجموع متساوٍ من الشحنات الموجبة والسالبة."
       }
     ],
-    formula: "I = Q / t",
-    formulaExplanation:
-      "شدة التيار تساوي الشحنة الكهربائية المارة مقسومة على الزمن، عندما تكون الشحنة ثابتة المعدل.",
-    example:
-      "إذا مرت شحنة مقدارها 6 كولوم خلال 2 ثانية، فإن شدة التيار المتوسطة تساوي 3 أمبير.",
-    exercise: {
-      question: "ما وحدة قياس شدة التيار الكهربائي؟",
-      answers: ["الفولت", "الأمبير", "الأوم", "الواط"],
-      correct: 1
-    }
+    formula: "الشحنات المتشابهة تتنافر، والمختلفة تتجاذب.",
+    lab: "circuit"
+  },
+  {
+    id: "electroscope",
+    title: "الكاشف الكهربائي",
+    category: "electricity",
+    icon: "🔬",
+    duration: "12 دقيقة",
+    level: "أساسي",
+    description: "اكتشف كيف يكشف الكاشف الكهربائي وجود الشحنات.",
+    objectives: [
+      "التعرف على أجزاء الكاشف الكهربائي.",
+      "تفسير انفراج ورقتي الكاشف.",
+      "فهم تأثير تقريب جسم مشحون."
+    ],
+    sections: [
+      {
+        title: "مبدأ عمل الكاشف",
+        body: "يتكون الكاشف الكهربائي المدرسي عادة من قرص معدني متصل بساق معدنية وورقتين رقيقتين. عندما تتوزع شحنات متماثلة على الورقتين، تتنافران فتبتعدان عن بعضهما."
+      },
+      {
+        title: "التجربة",
+        body: "قرّب قضيبًا مشحونًا من قرص الكاشف دون لمسه، وراقب حركة الورقتين. ثم أبعد القضيب ولاحظ ما يتغير. النتيجة تعتمد على حالة الكاشف وطريقة شحنه."
+      }
+    ],
+    formula: "انفراج الورقتين دليل على توزع الشحنات المتماثلة عليهما.",
+    lab: "circuit"
+  },
+  {
+    id: "atomic-model",
+    title: "بنية الذرة والشحنات",
+    category: "matter",
+    icon: "⚛️",
+    duration: "15 دقيقة",
+    level: "أساسي",
+    description: "تعرّف على النواة والبروتونات والنيوترونات والإلكترونات.",
+    objectives: [
+      "تحديد مكونات الذرة.",
+      "معرفة الشحنات النسبية للجسيمات.",
+      "فهم التعادل الكهربائي للذرة."
+    ],
+    sections: [
+      {
+        title: "مكونات الذرة",
+        body: "تتكون الذرة من نواة تحتوي على البروتونات والنيوترونات، وتوجد الإلكترونات في المنطقة المحيطة بالنواة. البروتون موجب الشحنة، والإلكترون سالب الشحنة، والنيوترون متعادل."
+      },
+      {
+        title: "الذرة المتعادلة",
+        body: "في الذرة المتعادلة كهربائيًا، يساوي عدد الإلكترونات عدد البروتونات. إذا فقدت الذرة إلكترونات أصبحت أيونًا موجبًا، وإذا اكتسبت إلكترونات أصبحت أيونًا سالبًا."
+      },
+      {
+        title: "مثال: الأكسجين",
+        body: "العدد الذري للأكسجين هو 8، لذلك تحتوي نواته على 8 بروتونات. ذرة الأكسجين المتعادلة لها 8 إلكترونات."
+      }
+    ],
+    formula: "الذرة المتعادلة: عدد البروتونات = عدد الإلكترونات.",
+    lab: "circuit"
+  },
+  {
+    id: "current",
+    title: "التيار الكهربائي",
+    category: "electricity",
+    icon: "🔌",
+    duration: "18 دقيقة",
+    level: "متوسط",
+    description: "افهم شروط مرور التيار الكهربائي واتجاهه في الدارة.",
+    objectives: [
+      "معرفة دور المولد والقاطعة.",
+      "التمييز بين الدارة المفتوحة والمغلقة.",
+      "التعرف على اتجاه التيار الاصطلاحي."
+    ],
+    sections: [
+      {
+        title: "شروط مرور التيار",
+        body: "في الدارة الكهربائية المدرسية، يحتاج التيار إلى مسار موصل مغلق ومصدر كهربائي مناسب. عند فتح القاطعة ينقطع المسار فلا يمر تيار في الدارة المثالية."
+      },
+      {
+        title: "اتجاه التيار",
+        body: "الاتجاه الاصطلاحي للتيار خارج المولد هو من قطبه الموجب نحو قطبه السالب. أما حركة الإلكترونات في الموصل المعدني فتكون في الاتجاه المعاكس."
+      }
+    ],
+    formula: "شدة التيار I تقاس بالأمبير (A).",
+    lab: "circuit"
   },
   {
     id: "voltage",
     title: "التوتر الكهربائي",
     category: "electricity",
-    icon: "🔋",
-    duration: "18 دقيقة",
-    difficulty: "سهل",
-    description: "افهم التوتر الكهربائي وكيفية قياسه بالفولتمتر.",
-    introduction:
-      "التوتر الكهربائي بين نقطتين يعبّر عن فرق الكمون الكهربائي بينهما، ونرمز له غالبًا بالحرف U.",
+    icon: "📏",
+    duration: "15 دقيقة",
+    level: "متوسط",
+    description: "تعلم مفهوم التوتر وكيفية قياسه باستعمال الفولطمتر.",
+    objectives: [
+      "معرفة رمز التوتر ووحدته.",
+      "فهم دور الفولطمتر.",
+      "التعرف على توتر المولد والمستقبل."
+    ],
     sections: [
       {
-        title: "وحدة القياس",
-        text: "وحدة قياس التوتر الكهربائي هي الفولت V. نستعمل الفولتمتر لقياس التوتر بين طرفي عنصر كهربائي."
+        title: "تعريف التوتر",
+        body: "التوتر الكهربائي بين نقطتين هو فرق الكمون الكهربائي بينهما، ويرمز له غالبًا بالحرف U، وتقاس قيمته بالفولط (V)."
       },
       {
-        title: "تركيب الفولتمتر",
-        text: "يركب الفولتمتر على التفرع بين طرفي العنصر المراد قياس التوتر بينهما، مع احترام القطبية عند استعمال جهاز مستمر."
-      },
-      {
-        title: "مصدر التوتر",
-        text: "البطارية أو المولد يمكن أن يوفر توترًا كهربائيًا للدارة. القيمة الفعلية تعتمد على المصدر وظروف التشغيل."
+        title: "القياس",
+        body: "يوصل الفولطمتر على التوازي مع العنصر المراد قياس التوتر بين طرفيه، مع احترام قطبيته عند استعمال جهاز ذي أطراف محددة."
       }
     ],
-    formula: "U = V",
-    formulaExplanation:
-      "يرمز U إلى التوتر الكهربائي، وتقاس قيمته بالفولت.",
-    example:
-      "إذا أظهر الفولتمتر 4.5 V بين طرفي بطارية، فالتوتر المقاس يساوي 4.5 فولت.",
-    exercise: {
-      question: "بأي جهاز نقيس التوتر الكهربائي؟",
-      answers: ["الأمبيرمتر", "الميزان", "الفولتمتر", "المحرار"],
-      correct: 2
-    }
+    formula: "U تقاس بالفولط (V).",
+    lab: "circuit"
   },
   {
     id: "ohm-law",
-    title: "قانون أوم",
+    title: "قانون أوم والمقاومة",
     category: "electricity",
-    icon: "📐",
+    icon: "📈",
     duration: "20 دقيقة",
-    difficulty: "متوسط",
-    description: "اكتشف العلاقة بين التوتر وشدة التيار والمقاومة.",
-    introduction:
-      "في مقاومة أومية، يتناسب التوتر بين طرفيها طرديًا مع شدة التيار المار فيها، ضمن شروط درجة الحرارة الثابتة.",
+    level: "متوسط",
+    description: "اربط بين التوتر وشدة التيار وقيمة المقاومة.",
+    objectives: [
+      "تطبيق قانون أوم.",
+      "حساب شدة التيار أو التوتر أو المقاومة.",
+      "قراءة منحنى التوتر بدلالة شدة التيار."
+    ],
     sections: [
       {
-        title: "العلاقة الأساسية",
-        text: "قانون أوم للمقاومة الأومية هو U = R × I. نرمز للتوتر بـ U، وللمقاومة بـ R، ولشدة التيار بـ I."
+        title: "قانون أوم",
+        body: "بالنسبة لناقل أومي وفي شروط ثابتة، يتناسب التوتر بين طرفيه طرديًا مع شدة التيار المار فيه. ثابت التناسب هو المقاومة الكهربائية."
       },
       {
-        title: "وحدات القياس",
-        text: "التوتر بالفولت V، والمقاومة بالأوم Ω، وشدة التيار بالأمبير A."
-      },
-      {
-        title: "تطبيق القانون",
-        text: "إذا كان التوتر 12 V والمقاومة 6 Ω، فإن شدة التيار تساوي I = U / R = 12 / 6 = 2 A."
+        title: "مثال محلول",
+        body: "إذا كان التوتر U = 6 V والمقاومة R = 10 Ω، فإن شدة التيار I = U ÷ R = 6 ÷ 10 = 0.6 A."
       }
     ],
     formula: "U = R × I",
-    formulaExplanation:
-      "يمكن تحويل القانون إلى I = U / R أو R = U / I إذا كانت الكميات الأخرى معروفة.",
-    example:
-      "مقاومة قيمتها 10 Ω موصولة بتوتر 5 V يمر فيها تيار شدته 0.5 A في النموذج الأومي المثالي.",
-    exercise: {
-      question: "مقاومة 4 Ω تحت توتر 12 V. ما شدة التيار؟",
-      answers: ["2 A", "3 A", "4 A", "48 A"],
-      correct: 1
-    }
+    lab: "ohm"
   },
   {
-    id: "series-circuit",
-    title: "الدارة على التسلسل",
+    id: "series-circuits",
+    title: "التوصيل على التسلسل",
     category: "electricity",
     icon: "🔗",
-    duration: "16 دقيقة",
-    difficulty: "متوسط",
-    description: "تعرف على خصائص التيار والتوتر في دارة التسلسل.",
-    introduction:
-      "في دارة التسلسل توصل العناصر واحدًا بعد الآخر ضمن مسار واحد للتيار الكهربائي.",
+    duration: "18 دقيقة",
+    level: "متوسط",
+    description: "اكتشف خصائص الدارة التي تحتوي على عناصر موصولة على التسلسل.",
+    objectives: [
+      "معرفة أن شدة التيار واحدة في عناصر تسلسل مثالي.",
+      "فهم توزيع التوتر.",
+      "حساب المقاومة المكافئة لمقاومات تسلسلية."
+    ],
     sections: [
       {
-        title: "شدة التيار",
-        text: "في الدارة التسلسلية البسيطة تكون شدة التيار نفسها في جميع عناصر المسار الواحد."
+        title: "خصائص التوصيل",
+        body: "في دارة تسلسلية بسيطة يمر التيار نفسه في جميع العناصر، ويتوزع توتر المولد على المستقبلات. انقطاع المسار في عنصر واحد يقطع التيار في الدارة كلها."
       },
       {
-        title: "التوتر الكهربائي",
-        text: "في النموذج المدرسي المثالي، يساوي توتر المولد مجموع التوترات بين طرفي المستقبلات الموصولة على التسلسل."
-      },
-      {
-        title: "انقطاع الدارة",
-        text: "إذا انقطع المسار في نقطة، يتوقف التيار في الدارة التسلسلية كلها."
+        title: "المقاومة المكافئة",
+        body: "عند توصيل مقاومات مثالية على التسلسل، تساوي المقاومة المكافئة مجموع المقاومات."
       }
     ],
-    formula: "U = U₁ + U₂",
-    formulaExplanation:
-      "في دارة تسلسلية بسيطة، مجموع التوترات على العناصر يساوي توتر المولد.",
-    example:
-      "إذا كان توتر المولد 9 V وتوتر المصباح الأول 4 V، يكون توتر المصباح الثاني 5 V في النموذج المثالي.",
-    exercise: {
-      question: "ماذا يحدث إذا انقطع سلك في دارة تسلسلية؟",
-      answers: [
-        "يزداد التيار دائمًا",
-        "يستمر كل شيء طبيعيًا",
-        "يتوقف التيار في الدارة",
-        "يتحول التوتر إلى صفر في كل الحالات"
-      ],
-      correct: 2
-    }
+    formula: "Rₑq = R₁ + R₂ + R₃ + …",
+    lab: "series"
   },
   {
-    id: "parallel-circuit",
-    title: "الدارة على التفرع",
+    id: "parallel-circuits",
+    title: "التوصيل على التفرع",
     category: "electricity",
     icon: "🔀",
-    duration: "17 دقيقة",
-    difficulty: "متوسط",
-    description: "افهم الفروع الكهربائية وتوزيع التيار والتوتر.",
-    introduction:
-      "في دارة التفرع يوجد أكثر من مسار للتيار الكهربائي، وتتصل العناصر بين عقدتين مشتركتين أو أكثر.",
+    duration: "18 دقيقة",
+    level: "متوسط",
+    description: "افهم الفروع الكهربائية وكيفية توزيع التيار والتوتر.",
+    objectives: [
+      "التعرف على العقد والفروع.",
+      "فهم خصائص التوتر في الفروع المتوازية.",
+      "مقارنة التوصيل على التسلسل والتفرع."
+    ],
     sections: [
       {
-        title: "التوتر في الفروع",
-        text: "العناصر المتصلة على التفرع بين العقدتين نفسيهما لها التوتر نفسه."
+        title: "خصائص التفرع",
+        body: "في فروع متوازية متصلة بالنقطتين نفسيهما، يكون التوتر بين طرفي كل فرع متساويًا. وتتوزع شدة التيار الكلي على الفروع."
       },
       {
-        title: "شدة التيار",
-        text: "شدة التيار الداخل إلى عقدة تساوي مجموع شدات التيارات الخارجة منها في الحالة المستقرة."
-      },
-      {
-        title: "استقلال الفروع",
-        text: "قد يستمر التيار في فروع أخرى إذا انقطع أحد الفروع، ما دامت الدارة تسمح بذلك."
+        title: "اختلاف التوصيل",
+        body: "التوصيل على التفرع يسمح ببقاء بعض الفروع عاملة إذا انقطع فرع آخر، ما دام لكل فرع مسار مغلق ومصدر مناسب."
       }
     ],
-    formula: "I = I₁ + I₂",
-    formulaExplanation:
-      "في عقدة تتفرع فيها الدارة، مجموع التيارات الداخلة يساوي مجموع التيارات الخارجة.",
-    example:
-      "إذا كان التيار الكلي 3 A وتوزع إلى فرعين، أحدهما 1 A، فالتيار في الفرع الثاني 2 A.",
-    exercise: {
-      question: "في دارة تفرع، إذا كان I = 5 A و I₁ = 2 A، فما قيمة I₂؟",
-      answers: ["2 A", "3 A", "5 A", "7 A"],
-      correct: 1
-    }
+    formula: "I الكلي = مجموع شدات التيار في الفروع.",
+    lab: "series"
   },
   {
-    id: "power",
+    id: "electrical-power",
     title: "الاستطاعة الكهربائية",
-    category: "electricity",
+    category: "energy",
     icon: "💡",
-    duration: "20 دقيقة",
-    difficulty: "متوسط",
-    description: "احسب الاستطاعة وتعرّف على وحدتها وعلاقتها بالطاقة.",
-    introduction:
-      "الاستطاعة الكهربائية تعبّر عن معدل تحويل الطاقة أو استهلاكها خلال الزمن، وفق نوع الجهاز وظروف عمله.",
+    duration: "15 دقيقة",
+    level: "متوسط",
+    description: "احسب استطاعة جهاز كهربائي باستعمال التوتر وشدة التيار.",
+    objectives: [
+      "فهم معنى الاستطاعة.",
+      "تطبيق العلاقة P = U × I.",
+      "التعرف على الواط كوحدة للاستطاعة."
+    ],
     sections: [
       {
-        title: "وحدة الاستطاعة",
-        text: "تقاس الاستطاعة بالواط W، ونرمز لها بالحرف P."
+        title: "مفهوم الاستطاعة",
+        body: "الاستطاعة الكهربائية تعبر عن معدل تحويل الطاقة أو استهلاكها مع الزمن. تعتمد الاستطاعة الكهربائية في هذا النموذج على التوتر وشدة التيار."
       },
       {
-        title: "العلاقة الكهربائية",
-        text: "في دارة كهربائية، يمكن حساب الاستطاعة الكهربائية بالعلاقة P = U × I عند معرفة التوتر وشدة التيار."
-      },
-      {
-        title: "الطاقة والزمن",
-        text: "عند ثبات الاستطاعة، الطاقة المستهلكة تساوي الاستطاعة مضروبة في الزمن. يجب الانتباه إلى وحدات الزمن والطاقة."
+        title: "مثال محلول",
+        body: "جهاز يعمل تحت توتر 12 V ويمر فيه تيار شدته 5 A. استطاعته P = 12 × 5 = 60 W."
       }
     ],
     formula: "P = U × I",
-    formulaExplanation:
-      "الاستطاعة بالواط تساوي التوتر بالفولت مضروبًا في شدة التيار بالأمبير.",
-    example:
-      "جهاز يعمل بتوتر 12 V ويمر فيه تيار 2 A، استطاعته الكهربائية 24 W.",
-    exercise: {
-      question: "جهاز يعمل بتوتر 10 V وتيار 2 A. ما استطاعته؟",
-      answers: ["5 W", "12 W", "20 W", "100 W"],
-      correct: 2
-    }
+    lab: "power"
+  },
+  {
+    id: "electrical-energy",
+    title: "الطاقة الكهربائية",
+    category: "energy",
+    icon: "🔋",
+    duration: "18 دقيقة",
+    level: "متوسط",
+    description: "احسب الطاقة المستهلكة باستعمال الاستطاعة ومدة التشغيل.",
+    objectives: [
+      "ربط الطاقة بالاستطاعة والزمن.",
+      "التعرف على Wh وJ.",
+      "حل مسائل الاستهلاك الكهربائي."
+    ],
+    sections: [
+      {
+        title: "حساب الطاقة",
+        body: "إذا كانت الاستطاعة ثابتة خلال مدة زمنية، يمكن حساب الطاقة المستهلكة بضرب الاستطاعة في الزمن، مع توحيد الوحدات."
+      },
+      {
+        title: "تحويل الوحدات",
+        body: "عند استخدام الاستطاعة بالواط والزمن بالثانية، تكون الطاقة بالجول. كما أن 1 Wh يساوي 3600 J."
+      }
+    ],
+    formula: "E = P × t",
+    lab: "power"
+  },
+  {
+    id: "motion",
+    title: "الحركة والسكون",
+    category: "mechanics",
+    icon: "🏎️",
+    duration: "15 دقيقة",
+    level: "أساسي",
+    description: "تعرف على المسار والحركة والسكون بالنسبة إلى مرجع.",
+    objectives: [
+      "تحديد المرجع.",
+      "التمييز بين الحركة والسكون.",
+      "وصف المسار."
+    ],
+    sections: [
+      {
+        title: "الحركة بالنسبة إلى مرجع",
+        body: "نقول إن جسمًا متحرك إذا تغير موضعه بالنسبة إلى مرجع معين مع الزمن. وقد يكون الجسم ساكنًا بالنسبة إلى مرجع ومتحركًا بالنسبة إلى مرجع آخر."
+      },
+      {
+        title: "المسار",
+        body: "المسار هو مجموعة المواضع المتتالية التي يشغلها الجسم أثناء حركته. يمكن أن يكون مستقيمًا أو منحنيًا أو دائريًا."
+      }
+    ],
+    formula: "وصف الحركة يتطلب تحديد المرجع.",
+    lab: "motion"
+  },
+  {
+    id: "speed",
+    title: "السرعة المتوسطة",
+    category: "mechanics",
+    icon: "⏱️",
+    duration: "20 دقيقة",
+    level: "متوسط",
+    description: "احسب السرعة المتوسطة من المسافة المقطوعة والزمن المستغرق.",
+    objectives: [
+      "استخدام العلاقة الرياضية للسرعة.",
+      "تمييز وحدات السرعة.",
+      "حل مسائل تطبيقية."
+    ],
+    sections: [
+      {
+        title: "السرعة المتوسطة",
+        body: "السرعة المتوسطة هي المسافة الكلية المقطوعة مقسومة على المدة الزمنية المستغرقة، عند استعمال وحدات متوافقة."
+      },
+      {
+        title: "مثال محلول",
+        body: "إذا قطع جسم 100 m خلال 10 s، فالسرعة المتوسطة تساوي 100 ÷ 10 = 10 m/s."
+      }
+    ],
+    formula: "v = d ÷ t",
+    lab: "motion"
   },
   {
     id: "chemical-change",
     title: "التحول الكيميائي",
-    category: "chemistry",
+    category: "matter",
     icon: "🧪",
-    duration: "18 دقيقة",
-    difficulty: "متوسط",
-    description: "ميّز بين المتفاعلات والنواتج وافهم التحول الكيميائي.",
-    introduction:
-      "أثناء التحول الكيميائي تختفي بعض الأنواع الكيميائية، تسمى المتفاعلات، وتظهر أنواع أخرى تسمى النواتج.",
-    sections: [
-      {
-        title: "المتفاعلات والنواتج",
-        text: "المتفاعلات هي المواد الموجودة قبل التحول، أما النواتج فهي المواد المتشكلة بعده."
-      },
-      {
-        title: "دلائل التحول",
-        text: "قد تظهر فقاعات غازية أو يتغير اللون أو تتشكل مادة صلبة جديدة. يجب تفسير هذه الملاحظات حسب التجربة."
-      },
-      {
-        title: "حفظ الذرات",
-        text: "في المعادلة الكيميائية الموزونة، يبقى عدد ذرات كل عنصر محفوظًا بين طرفي المعادلة."
-      }
-    ],
-    formula: "متفاعلات → نواتج",
-    formulaExplanation:
-      "تمثل هذه الكتابة العامة تحول المواد المتفاعلة إلى مواد ناتجة.",
-    example:
-      "عند حدوث تفاعل كيميائي مناسب، يمكن ملاحظة انطلاق غاز. لا يكفي ظهور الفقاعات وحده لتحديد نوع الغاز.",
-    exercise: {
-      question: "ما اسم المواد الموجودة بعد التحول الكيميائي؟",
-      answers: ["المتفاعلات", "النواتج", "الأدوات", "المذيبات دائمًا"],
-      correct: 1
-    }
-  },
-  {
-    id: "motion",
-    title: "الحركة والسرعة",
-    category: "mechanics",
-    icon: "🚀",
     duration: "20 دقيقة",
-    difficulty: "متوسط",
-    description: "احسب السرعة المتوسطة وميّز بين الحركة والسكون.",
-    introduction:
-      "توصف حركة جسم بالنسبة إلى مرجع معين. وقد يكون الجسم ساكنًا بالنسبة إلى مرجع ومتحركًا بالنسبة إلى مرجع آخر.",
+    level: "متوسط",
+    description: "تعرف على المتفاعلات والنواتج وكيفية تمثيل التحول الكيميائي.",
+    objectives: [
+      "تمييز التحول الفيزيائي عن الكيميائي.",
+      "تحديد المتفاعلات والنواتج.",
+      "فهم مبدأ انحفاظ الذرات في التفاعل."
+    ],
     sections: [
       {
-        title: "السرعة المتوسطة",
-        text: "تحسب السرعة المتوسطة بقسمة المسافة المقطوعة على المدة الزمنية المستغرقة."
+        title: "مفهوم التحول الكيميائي",
+        body: "في التحول الكيميائي تختفي بعض الأنواع الكيميائية وتتشكل أنواع جديدة. تسمى المواد التي تبدأ بها العملية بالمتفاعلات، والمواد المتشكلة بالنواتج."
       },
       {
-        title: "الوحدات",
-        text: "إذا كانت المسافة بالمتر والزمن بالثانية، تكون السرعة بالمتر في الثانية m/s."
-      },
-      {
-        title: "المرجع",
-        text: "وصف الحركة يتطلب تحديد المرجع الذي نلاحظ الحركة بالنسبة إليه."
+        title: "انحفاظ الذرات",
+        body: "في النموذج الكيميائي المعتاد، لا تختفي الذرات ولا تُخلق أثناء التفاعل؛ بل يعاد ترتيبها لتكوين مواد جديدة. لذلك يجب موازنة المعادلة الكيميائية."
       }
     ],
-    formula: "v = d / t",
-    formulaExplanation:
-      "السرعة المتوسطة تساوي المسافة المقطوعة مقسومة على الزمن المستغرق.",
-    example:
-      "جسم قطع 100 متر خلال 20 ثانية، سرعته المتوسطة 5 m/s.",
-    exercise: {
-      question: "قطع جسم 60 مترًا خلال 10 ثوانٍ. ما سرعته المتوسطة؟",
-      answers: ["3 m/s", "6 m/s", "10 m/s", "600 m/s"],
-      correct: 1
-    }
+    formula: "عدد ذرات كل عنصر محفوظ عند موازنة المعادلة.",
+    lab: "motion"
   }
 ];
 
-/* ---------- 3. Quiz Database ---------- */
-
-const questions = [
-  {
-    question: "ما وحدة قياس شدة التيار الكهربائي؟",
-    answers: ["الفولت", "الأمبير", "الأوم", "الواط"],
-    correct: 1,
-    explanation: "الأمبير A هي وحدة قياس شدة التيار الكهربائي."
-  },
-  {
-    question: "ما الجهاز المستخدم لقياس التوتر الكهربائي؟",
-    answers: ["الأمبيرمتر", "الفولتمتر", "المحرار", "الميزان"],
-    correct: 1,
-    explanation: "الفولتمتر يقيس التوتر الكهربائي بين طرفي عنصر."
-  },
-  {
-    question: "ما العلاقة الصحيحة لقانون أوم؟",
-    answers: ["U = R × I", "U = R + I", "U = I / R", "U = R - I"],
-    correct: 0,
-    explanation: "قانون أوم للمقاومة الأومية هو U = R × I."
-  },
-  {
-    question: "مقاومة 6 Ω تحت توتر 12 V. ما شدة التيار؟",
-    answers: ["0.5 A", "2 A", "6 A", "72 A"],
-    correct: 1,
-    explanation: "I = U / R = 12 / 6 = 2 A."
-  },
-  {
-    question: "ما وحدة قياس الاستطاعة الكهربائية؟",
-    answers: ["الجول", "الأوم", "الواط", "الأمبير"],
-    correct: 2,
-    explanation: "الواط W هو وحدة قياس الاستطاعة."
-  },
-  {
-    question: "ما العلاقة المبسطة للاستطاعة الكهربائية؟",
-    answers: ["P = U × I", "P = U / I", "P = U + I", "P = U - I"],
-    correct: 0,
-    explanation: "الاستطاعة الكهربائية تساوي التوتر مضروبًا في شدة التيار."
-  },
-  {
-    question: "في دارة تسلسلية بسيطة، ماذا يحدث للتيار عند انقطاع المسار؟",
-    answers: [
-      "يزداد دائمًا",
-      "يستمر دون تغيير",
-      "يتوقف التيار في المسار",
-      "يتحول إلى توتر"
-    ],
-    correct: 2,
-    explanation: "انقطاع المسار يفتح الدارة ويمنع مرور التيار."
-  },
-  {
-    question: "ما وحدة قياس السرعة عندما تكون المسافة بالمتر والزمن بالثانية؟",
-    answers: ["m/s", "kg", "V", "Ω"],
-    correct: 0,
-    explanation: "وحدة السرعة الموافقة لهاتين الوحدتين هي متر في الثانية."
-  },
-  {
-    question: "ما اسم المواد التي تتشكل بعد تحول كيميائي؟",
-    answers: ["المتفاعلات", "النواتج", "القياسات", "المراجع"],
-    correct: 1,
-    explanation: "تسمى المواد التي تتشكل أثناء التحول الكيميائي بالنواتج."
-  },
-  {
-    question: "إذا كانت المسافة 100 m والزمن 20 s، فما السرعة المتوسطة؟",
-    answers: ["2 m/s", "5 m/s", "20 m/s", "2000 m/s"],
-    correct: 1,
-    explanation: "v = d / t = 100 / 20 = 5 m/s."
-  }
-];
-
-/* ---------- 4. DOM Helpers ---------- */
-
-const $ = (selector, parent = document) =>
-  parent.querySelector(selector);
-
-const $$ = (selector, parent = document) =>
-  Array.from(parent.querySelectorAll(selector));
-
-function safeText(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-/* ---------- 5. Lesson Rendering ---------- */
+let completedLessons = new Set(loadJSON(STORAGE.progress, []));
+let currentLesson = null;
 
 function renderLessons() {
   const grid = $("#lessonGrid");
-
   if (!grid) return;
 
-  const search = ($("#lessonSearch")?.value || "")
-    .trim()
-    .toLocaleLowerCase("ar");
+  const search = ($("#lessonSearch")?.value || "").trim().toLowerCase();
+  const filter = $("#lessonFilter")?.value || "all";
 
-  const category = $("#lessonFilter")?.value || "all";
+  const visible = lessons.filter(lesson => {
+    const text = [
+      lesson.title,
+      lesson.description,
+      lesson.category,
+      ...lesson.objectives
+    ].join(" ").toLowerCase();
 
-  const filtered = lessons.filter((lesson) => {
-    const matchesSearch =
-      lesson.title.toLocaleLowerCase("ar").includes(search) ||
-      lesson.description.toLocaleLowerCase("ar").includes(search);
+    const matchesSearch = text.includes(search);
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "completed" && completedLessons.has(lesson.id)) ||
+      lesson.category === filter;
 
-    const matchesCategory =
-      category === "all" || lesson.category === category;
-
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesFilter;
   });
 
-  if (!filtered.length) {
+  if (!visible.length) {
     grid.innerHTML = `
       <div class="empty-state">
-        <p>لم نجد دروسًا مطابقة لبحثك.</p>
-        <p>جرّب كلمة أخرى أو اختر تصنيفًا مختلفًا.</p>
-      </div>
-    `;
+        <span>🔎</span>
+        <p>لم نعثر على درس مطابق. جرّب كلمة أخرى.</p>
+      </div>`;
     return;
   }
 
-  grid.innerHTML = filtered.map((lesson) => {
-    const completed = state.completedLessons.includes(lesson.id);
+  grid.innerHTML = visible.map(lesson => {
+    const done = completedLessons.has(lesson.id);
 
     return `
-      <article class="lesson-card ${completed ? "completed" : ""}">
+      <article class="lesson-card ${done ? "is-completed" : ""}">
         <div class="lesson-card-top">
-          <span class="lesson-icon">${lesson.icon}</span>
-          <span class="lesson-tag">
-            ${completed ? "✓ مكتمل" : safeText(lesson.difficulty)}
-          </span>
+          <span class="lesson-icon">${escapeHTML(lesson.icon)}</span>
+          <span class="lesson-tag">${done ? "✓ مكتمل" : escapeHTML(lesson.level)}</span>
         </div>
-
-        <h3>${safeText(lesson.title)}</h3>
-        <p>${safeText(lesson.description)}</p>
-
+        <h3>${escapeHTML(lesson.title)}</h3>
+        <p>${escapeHTML(lesson.description)}</p>
         <div class="lesson-meta">
-          <span>◷ ${safeText(lesson.duration)}</span>
-          <span>${completed ? "تمت المراجعة" : "درس تعليمي"}</span>
+          <span>◷ ${escapeHTML(lesson.duration)}</span>
+          <span>${lesson.sections.length} محاور</span>
         </div>
-function answerLessonExercise(index) {
-  const modal = $("#lessonModal");
-  const title = $("#modalTitle", modal);
+        <button class="button button-primary lesson-open"
+          type="button" data-open-lesson="${escapeHTML(lesson.id)}">
+          ${done ? "مراجعة الدرس" : "افتح الدرس ←"}
+        </button>
+      </article>`;
+  }).join("");
+}
 
-  if (!title) return;
+function updateProgress() {
+  const total = lessons.length;
+  const completed = lessons.filter(item =>
+    completedLessons.has(item.id)
+  ).length;
 
-  const lesson = lessons.find((item) => item.title === title.textContent);
+  const percent = total ? Math.round(completed / total * 100) : 0;
 
+  setText("totalLessonsCount", total);
+  setText("completedLessonsCount", completed);
+  setText("progressPercent", `${percent}%`);
+
+  const bar = $("#learningProgressBar");
+  if (bar) bar.style.width = `${percent}%`;
+
+  const nextLesson = lessons.find(item => !completedLessons.has(item.id));
+
+  setText(
+    "resumeTitle",
+    nextLesson ? nextLesson.title : "أكملت جميع الدروس المتاحة!"
+  );
+
+  setText(
+    "resumeDescription",
+    nextLesson
+      ? `الدرس التالي المقترح: ${nextLesson.title}`
+      : "أحسنت! يمكنك مراجعة الدروس في أي وقت."
+  );
+
+  const link = $("#resumeLink");
+  if (link) {
+    link.textContent = nextLesson ? "تابع التعلّم ←" : "راجع الدروس ←";
+    link.href = "#lessons";
+    link.onclick = event => {
+      if (!nextLesson) return;
+      event.preventDefault();
+      openLesson(nextLesson.id);
+    };
+  }
+}
+
+function openLesson(id) {
+  const lesson = lessons.find(item => item.id === id);
   if (!lesson) return;
 
-  const buttons = $$("[data-exercise-answer]", modal);
-  const feedback = $("#lessonExerciseFeedback", modal);
+  currentLesson = lesson;
 
-  buttons.forEach((button) => {
-    button.disabled = true;
+  $("#lessonModal")?.remove();
 
-    const answerIndex = Number(button.dataset.exerciseAnswer);
+  const modal = document.createElement("div");
+  modal.id = "lessonModal";
+  modal.className = "lesson-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "modalLessonTitle");
 
-    if (answerIndex === lesson.exercise.correct) {
-      button.classList.add("correct");
-    } else if (answerIndex === index) {
-      button.classList.add("wrong");
-    }
+  const sectionsHTML = lesson.sections.map(section => `
+    <section>
+      <h3>${escapeHTML(section.title)}</h3>
+      <p>${escapeHTML(section.body)}</p>
+    </section>
+  `).join("");
+
+  const objectivesHTML = lesson.objectives.map(objective =>
+    `<li>${escapeHTML(objective)}</li>`
+  ).join("");
+
+  const done = completedLessons.has(lesson.id);
+
+  modal.innerHTML = `
+    <div class="modal-content">
+      <button class="modal-close" type="button"
+        aria-label="إغلاق الدرس">✕</button>
+      <span class="eyebrow">${escapeHTML(lesson.category)}</span>
+      <h2 id="modalLessonTitle">${escapeHTML(lesson.icon)} ${escapeHTML(lesson.title)}</h2>
+      <p>${escapeHTML(lesson.description)}</p>
+
+      <h3>أهداف الدرس</h3>
+      <ul>${objectivesHTML}</ul>
+
+      ${sectionsHTML}
+
+      <div class="modal-formula">${escapeHTML(lesson.formula)}</div>
+
+      <button class="button button-primary" type="button" id="completeLesson">
+        ${done ? "✓ الدرس مكتمل" : "✓ تحديد الدرس كمكتمل"}
+      </button>
+      <button class="button button-secondary" type="button" id="goToLessonLab">
+        ⚗️ الانتقال إلى المختبر
+      </button>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = "hidden";
+
+  $(".modal-close", modal)?.focus();
+
+  const closeModal = () => {
+    modal.remove();
+    document.body.style.overflow = "";
+    currentLesson = null;
+  };
+
+  $(".modal-close", modal)?.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", event => {
+    if (event.target === modal) closeModal();
   });
 
-  const correct = index === lesson.exercise.correct;
+  const escapeHandler = event => {
+    if (event.key === "Escape" && $("#lessonModal")) {
+      closeModal();
+      document.removeEventListener("keydown", escapeHandler);
+    }
+  };
 
-  feedback.textContent = correct
-    ? "إجابة صحيحة! أحسنت 👏"
-    : "ليست الإجابة الصحيحة. راجع الشرح وحاول مرة أخرى في المراجعة.";
+  document.addEventListener("keydown", escapeHandler);
 
-  feedback.className = `quiz-feedback ${correct ? "success" : "error"}`;
+  $("#completeLesson", modal)?.addEventListener("click", () => {
+    completedLessons.add(lesson.id);
+    saveJSON(STORAGE.progress, [...completedLessons]);
+    renderLessons();
+    updateProgress();
+    toast("تم حفظ تقدمك في هذا الدرس.");
+    closeModal();
+  });
 
-  if (correct) {
-    const exerciseKey = `exercise-${lesson.id}`;
+  $("#goToLessonLab", modal)?.addEventListener("click", () => {
+    closeModal();
+    const labTab = $(`[data-lab-tab="${lesson.lab}"]`);
+    if (labTab) labTab.click();
+    $("#laboratory")?.scrollIntoView({ behavior: "smooth" });
+  });
+}
 
-    if (!state.answeredQuestions.includes(exerciseKey)) {
-      state.a
+$("#lessonGrid")?.addEventListener("click", event => {
+  const button = event.target.closest("[data-open-lesson]");
+  if (button) openLesson(button.dataset.openLesson);
+});
+
+$("#lessonSearch")?.addEventListener("input", renderLessons);
+$("#lessonFilter")?.addEventListener("change", renderLessons);
+
+/* ---------- Navigation and theme ---------- */
+
+const themeButton = $("#themeToggle");
+const menuButton = $("#menuToggle");
+const mainNav = $("#mainNav");
+
+function applyTheme(theme) {
+  document.body.classList.toggle("light-theme", theme === "light");
+  if (themeButton) {
+    themeButton.textContent = theme === "light" ? "🌙" : "☀️";
+    themeButton.setAttribute(
+      "aria-label",
+      theme === "light" ? "تفعيل المظهر الداكن" : "تفعيل المظهر الفاتح"
+    );
+  }
+}
+
+applyTheme(loadJSON(STORAGE.theme, "dark"));
+
+themeButton?.addEventLis
