@@ -1,296 +1,226 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#081426">
-<title>ATLAS PHYSICS — عالم الفيزياء</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080d1c">
+  <meta name="description" content="ATLAS PHYSICS - منصة الفيزياء للسنة الرابعة متوسط في الجزائر">
+  <title>ATLAS PHYSICS | عالم الفيزياء</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header class="top">
-<a class="brand" href="#home">⚛ <span>ATLAS <b>PHYSICS</b>
-<small>افهمها. جرّبها. أتقنها.</small>
-</span>
-</a>
-<button id="menu" class="menu">☰</button>
-<nav id="nav">
-<button data-page="home" class="active">الرئيسية</button>
-<button data-page="lessons">الدروس</button>
-<button data-page="lab">المخبر</button>
-<button data-page="practice">التمارين</button>
-<button data-page="quiz">الاختبارات</button>
-<button data-page="formulas">القوانين</button>
-<button data-page="progress">تقدّمي</button>
-</nav>
-<button id="theme" class="theme">☼</button>
-</header>
-<main>
-<section id="home" class="page active">
-<div class="hero">
-<div>
-<span class="eyebrow">منصة العلوم الفيزيائية · الرابعة متوسط</span>
-<h1>الفيزياء ليست حفظًا.<br>
-<em>إنها اكتشاف.</em>
-</h1>
-<p>دروس مفهومة، تجارب افتراضية، تمارين مع الحل، واختبارات تدريبية للتحضير لشهادة التعليم المتوسط.</p>
-<button class="primary" data-go="lessons">ابدأ رحلة التعلّم ←</button> <button data-go="lab">ادخل المخبر ⚡</button>
-</div>
-<div class="atom">
-<div>⚛</div>
-<span>SCIENCE / EXPLORE / LEARN</span>
-</div>
-</div>
-<div class="stats">
-<article>
-<b id="doneCount">0</b>
-<small>دروس مكتملة</small>
-</article>
-<article>
-<b id="xpCount">0 XP</b>
-<small>نقاط الخبرة</small>
-</article>
-<article>
-<b id="accuracy">0%</b>
-<small>دقّة الإجابات</small>
-</article>
-<article>
-<b>4AM</b>
-<small>السنة الرابعة متوسط</small>
-</article>
-</div>
-<div class="heading">
-<div>
-<small>ابدأ من هنا</small>
-<h2>كل أدواتك العلمية في مكان واحد</h2>
-</div>
-</div>
-<div class="cards">
-<article class="card">
-<i>▤</i>
-<h3>دروس مفصّلة</h3>
-<p>مفاهيم وأهداف وأمثلة محلولة وخلاصة لكل درس.</p>
-<button data-go="lessons">استكشف الدروس ←</button>
-</article>
-<article class="card">
-<i>⚗</i>
-<h3>مخبر تفاعلي</h3>
-<p>غيّر قيم التجربة ولاحظ النتائج بنفسك.</p>
-<button data-go="lab">ابدأ التجربة ←</button>
-</article>
-<article class="card">
-<i>◎</i>
-<h3>اختبارات تدريبية</h3>
-<p>تصحيح فوري وتفسير للإجابات والنقاط.</p>
-<button data-go="quiz">اختبر نفسك ←</button>
-</article>
-</div>
-<div class="card resume">
-<h3>رحلتك التعليمية</h3>
-<p id="resume">ابدأ أول درس لك.</p>
-<div class="bar">
-<span id="homeBar">
-</span>
-</div>
-</div>
-<p class="note">هذه نسخة أولية تعليمية. راجع ترتيب الدروس ومحتواها مع الكتاب المدرسي والوثائق الرسمية الجزائرية قبل اعتمادها كمرجع شامل.</p>
-</section>
 
-<section id="lessons" class="page">
-<div class="pagehead">
-<div>
-<small>مكتبة المعرفة</small>
-<h1>دروس <em>الفيزياء</em>
-</h1>
-<p>ابحث عن درس أو اختر وحدة.</p>
-</div>
-<span class="headicon">▤</span>
-</div>
-<div class="filters">
-<input id="searchLesson" placeholder="ابحث عن درس أو مفهوم...">
-<select id="unitFilter">
-<option value="all">كل الوحدات</option>
-<option value="electric">الظواهر الكهربائية</option>
-<option value="mechanics">الظواهر الميكانيكية</option>
-<option value="light">الظواهر الضوئية</option>
-<option value="matter">المادة وتحولاتها</option>
-</select>
-</div>
-<div id="lessonGrid" class="cards lesson-grid">
-</div>
-<div id="lessonModal" class="modal">
-<div class="modalbox">
-<button id="closeModal" class="close">×</button>
-<div id="lessonBody">
-</div>
-</div>
-</div>
-</section>
+  <div class="background-glow glow-one"></div>
+  <div class="background-glow glow-two"></div>
 
-<section id="lab" class="page">
-<div class="pagehead">
-<div>
-<small>تعلّم بالتجربة</small>
-<h1>المخبر <em>الافتراضي</em>
-</h1>
-<p>محاكاة مبسطة لقانون أوم، مع نتائج تتغيّر مباشرة.</p>
-</div>
-<span class="headicon">⚗</span>
-</div>
-<div class="labtabs">
-<button class="selected" data-lab="ohm">قانون أوم</button>
-<button data-lab="series">التسلسل</button>
-<button data-lab="power">الاستطاعة</button>
-</div>
-<div class="labgrid">
-<article class="card">
-<small>لوحة التحكّم</small>
-<h2 id="labTitle">دارة أومية بسيطة</h2>
-<p id="labIntro">حرّك المؤشرات وراقب النتائج.</p>
-<div id="labInputs">
-</div>
-<div class="equation" id="labEquation">I = U / R</div>
-<button id="resetLab">إعادة القيم الافتراضية ↺</button>
-</article>
-<article class="card stage">
-<small>المحاكاة · مباشرة</small>
-<div id="circuit">
-</div>
-<div id="readings" class="readings">
-</div>
-<div class="insight">
-<b>✦ ماذا تلاحظ؟</b>
-<p id="insightText">
-</p>
-</div>
-</article>
-</div>
-<p class="warning">⚠️ هذه محاكاة تعليمية فقط. لا توصل الموقع بأجهزة كهربائية حقيقية.</p>
-</section>
+  <header class="navbar">
+    <a class="brand" href="#home">
+      <span class="brand-icon">⚛</span>
+      <span>ATLAS <b>PHYSICS</b></span>
+    </a>
 
-<section id="practice" class="page">
-<div class="pagehead">
-<div>
-<small>تثبيت المعلومات</small>
-<h1>تدرّب <em>بذكاء</em>
-</h1>
-<p>حاول الحل قبل كشف الخطوات.</p>
-</div>
-<span class="headicon">✎</span>
-</div>
-<div class="filters">
-<input id="exerciseSearch" placeholder="ابحث عن تمرين...">
-<select id="exerciseLevel">
-<option value="all">كل المستويات</option>
-<option value="easy">أساسي</option>
-<option value="medium">متوسط</option>
-<option value="hard">تحدّي</option>
-</select>
-</div>
-<div id="exerciseGrid" class="cards">
-</div>
-</section>
+    <nav class="nav-links">
+      <a href="#home">الرئيسية</a>
+      <a href="#lessons">الدروس</a>
+      <a href="#experiments">التجارب</a>
+      <a href="#quiz">الاختبارات</a>
+    </nav>
 
-<section id="quiz" class="page">
-<div class="pagehead">
-<div>
-<small>تحدّي المعرفة</small>
-<h1>اختبارات <em>BEM</em>
-</h1>
-<p>أسئلة تدريبية غير رسمية مع شرح الإجابات.</p>
-</div>
-<span class="headicon">◎</span>
-</div>
-<div class="quizbox card">
-<div class="quiztop">
-<span id="quizCategory">اختبار عام</span>
-<span id="quizCounter">
-</span>
-</div>
-<div class="bar">
-<span id="quizBar">
-</span>
-</div>
-<div id="quizContent">
-</div>
-<p id="quizFeedback" aria-live="polite">
-</p>
-<button id="nextQuestion" class="primary" disabled>السؤال التالي ←</button> <button id="restartQuiz">إعادة الاختبار</button>
-</div>
-</section>
+    <button id="themeToggle" class="theme-button" aria-label="تغيير المظهر">☀️</button>
+  </header>
 
-<section id="formulas" class="page">
-<div class="pagehead">
-<div>
-<small>مرجع سريع</small>
-<h1>القوانين <em>والوحدات</em>
-</h1>
-<p>ابحث عن العلاقة أو الرمز أو وحدة القياس.</p>
-</div>
-<span class="headicon">∑</span>
-</div>
-<input id="formulaSearch" placeholder="ابحث عن قانون...">
-<div id="formulaGrid" class="cards formula-grid">
-</div>
-</section>
+  <main>
+    <section class="hero section" id="home">
+      <div class="hero-content">
+        <span class="eyebrow">منصة تعليمية جزائرية • 4AM</span>
+        <h1>اكتشف قوانين<br>الكون مع <span>ATLAS</span></h1>
+        <p>
+          تعلّم الفيزياء بطريقة مختلفة: دروس مبسطة، تجارب تفاعلية،
+          تمارين تطبيقية واختبارات تساعدك على التفوق.
+        </p>
 
-<section id="progress" class="page">
-<div class="pagehead">
-<div>
-<small>إنجازاتك</small>
-<h1>تقدّمي <em>التعليمي</em>
-</h1>
-<p>يُحفظ التقدم محليًا على هذا المتصفح.</p>
-</div>
-<span class="headicon">↗</span>
-</div>
-<div class="cards">
-<article class="card">
-<small>نسبة إكمال الدروس</small>
-<div class="big" id="percent">0%</div>
-<div class="bar">
-<span id="progressBar">
-</span>
-</div>
-<p id="progressText">
-</p>
-</article>
-<article class="card">
-<small>نقاط الخبرة</small>
-<div class="big" id="totalXP">0 XP</div>
-<p>أكمل الدروس وأجب عن الأسئلة لكسب النقاط.</p>
-</article>
-</div>
-<div class="card">
-<div class="heading">
-<h2>إنجازات الدروس</h2>
-<button id="resetProgress">مسح التقدم</button>
-</div>
-<div id="progressList">
-</div>
-</div>
-<div class="card">
-<h2>🏅 الشارات</h2>
-<div id="badges" class="badges">
-</div>
-</div>
-</section>
-</main>
-<footer>
-<div class="brand">⚛ ATLAS <b>PHYSICS</b>
-</div>
-<p>منصة تعليمية مستقلة لتعلّم الفيزياء بالتجربة والفهم.</p>
-<div>
-<button data-go="lessons">الدروس</button>
-<button data-go="lab">المخبر</button>
-<button data-go="progress">تقدّمي</button>
-</div>
-<small>© <span id="year">
-</span> ATLAS PHYSICS</small>
-</footer>
-<div id="toastRegion" class="toasts" aria-live="polite">
-</div>
-<script src="app.js">
-</script>
+        <div class="hero-actions">
+          <a class="button primary" href="#lessons">ابدأ التعلّم ←</a>
+          <a class="button secondary" href="#experiments">اكتشف التجارب</a>
+        </div>
+
+        <div class="hero-stats">
+          <div><strong id="lessonCount">8</strong><span>دروس تجريبية</span></div>
+          <div><strong id="xpValue">0</strong><span>نقطة XP</span></div>
+          <div><strong id="completedCount">0</strong><span>دروس مكتملة</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="atom">⚛</div>
+        <div class="floating-card card-top">⚡ الكهرباء</div>
+        <div class="floating-card card-bottom">🧪 التجارب العلمية</div>
+      </div>
+    </section>
+
+    <section class="section dashboard">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">مسارك التعليمي</span>
+          <h2>لوحة التقدم</h2>
+        </div>
+        <span class="level-badge">المستوى <b id="levelValue">1</b></span>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-info">
+          <span>تقدمك في المنصة</span>
+          <strong id="progressPercent">0%</strong>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar" class="progress-fill"></div>
+        </div>
+        <p>أكمل الدروس والاختبارات لرفع مستواك وجمع النقاط.</p>
+      </div>
+    </section>
+
+    <section class="section" id="lessons">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">تعلّم خطوة بخطوة</span>
+          <h2>مكتبة الدروس</h2>
+          <p>اختر درسًا للبدء في المراجعة.</p>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input id="lessonSearch" type="search" placeholder="ابحث عن درس..." aria-label="البحث عن درس">
+        <select id="lessonFilter" aria-label="تصفية الدروس">
+          <option value="all">كل الدروس</option>
+          <option value="electricity">الكهرباء</option>
+          <option value="mechanics">الميكانيك</option>
+          <option value="chemistry">الكيمياء</option>
+        </select>
+      </div>
+
+      <div id="lessonGrid" class="lesson-grid"></div>
+    </section>
+
+    <section class="section" id="experiments">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">مختبرك الافتراضي</span>
+          <h2>جرّب بنفسك</h2>
+          <p>غيّر القيم ولاحظ كيف تتغير النتائج.</p>
+        </div>
+      </div>
+
+      <div class="experiment-grid">
+        <article class="experiment-card">
+          <div class="experiment-icon">⚡</div>
+          <h3>قانون أوم</h3>
+          <p>احسب شدة التيار الكهربائي باستعمال العلاقة بين التوتر والمقاومة.</p>
+
+          <label for="voltage">التوتر الكهربائي U (V)</label>
+          <input id="voltage" type="range" min="0" max="24" value="12">
+          <div class="range-value"><span>التوتر</span><strong id="voltageValue">12 V</strong></div>
+
+          <label for="resistance">المقاومة R (Ω)</label>
+          <input id="resistance" type="range" min="1" max="100" value="10">
+          <div class="range-value"><span>المقاومة</span><strong id="resistanceValue">10 Ω</strong></div>
+
+          <div class="result-box">
+            <span>شدة التيار I = U ÷ R</span>
+            <strong id="currentValue">1.20 A</strong>
+          </div>
+        </article>
+
+        <article class="experiment-card">
+          <div class="experiment-icon">🔋</div>
+          <h3>الاستطاعة الكهربائية</h3>
+          <p>اكتشف كيف تتغير الاستطاعة عند تغيير التوتر وشدة التيار.</p>
+
+          <label for="powerVoltage">التوتر (V)</label>
+          <input id="powerVoltage" type="range" min="1" max="24" value="12">
+          <div class="range-value"><span>التوتر</span><strong id="powerVoltageValue">12 V</strong></div>
+
+          <label for="powerCurrent">شدة التيار (A)</label>
+          <input id="powerCurrent" type="range" min="1" max="10" value="3">
+          <div class="range-value"><span>التيار</span><strong id="powerCurrentValue">3 A</strong></div>
+
+          <div class="result-box">
+            <span>الاستطاعة P = U × I</span>
+            <strong id="powerValue">36 W</strong>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="formulas">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">مراجعة سريعة</span>
+          <h2>القوانين الأساسية</h2>
+        </div>
+      </div>
+
+      <div class="formula-grid">
+        <article class="formula-card">
+          <span>⚡ الكهرباء</span>
+          <strong>I = U / R</strong>
+          <p>شدة التيار = التوتر ÷ المقاومة</p>
+        </article>
+        <article class="formula-card">
+          <span>🔌 الاستطاعة</span>
+          <strong>P = U × I</strong>
+          <p>الاستطاعة = التوتر × شدة التيار</p>
+        </article>
+        <article class="formula-card">
+          <span>🔋 الطاقة الكهربائية</span>
+          <strong>E = P × t</strong>
+          <p>الطاقة = الاستطاعة × الزمن</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="quiz">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">اختبر معلوماتك</span>
+          <h2>تحدي الفيزياء</h2>
+          <p>أجب عن الأسئلة واجمع نقاط الخبرة.</p>
+        </div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-top">
+          <span id="questionNumber">السؤال 1</span>
+          <span id="quizScore">النقاط: 0</span>
+        </div>
+        <div class="quiz-progress-track">
+          <div id="quizProgress" class="progress-fill"></div>
+        </div>
+        <h3 id="questionText">جارٍ تحميل السؤال...</h3>
+        <div id="answerOptions" class="answer-options"></div>
+        <p id="quizFeedback" class="quiz-feedback" aria-live="polite"></p>
+        <button id="nextQuestion" class="button primary" disabled>السؤال التالي ←</button>
+      </div>
+    </section>
+
+    <section class="section final-cta">
+      <span class="eyebrow">رحلتك العلمية تبدأ هنا</span>
+      <h2>العلم ليس حفظًا فقط، بل فهم وتجربة.</h2>
+      <a class="button primary" href="#lessons">واصل التعلّم</a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="brand" href="#home"><span class="brand-icon">⚛</span> ATLAS <b>PHYSICS</b></a>
+    <p>منصة تعليمية تجريبية للفيزياء — السنة الرابعة متوسط، الجزائر.</p>
+    <p class="footer-note">تحقّق من مطابقة الدروس والتمارين للبرنامج الرسمي قبل اعتمادها للمراجعة النهائية.</p>
+    <span>© <span id="currentYear"></span> ATLAS PHYSICS</span>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
